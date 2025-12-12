@@ -19,7 +19,7 @@ How to Use
 
 First, clone the repository to your system:
 
-git clone https://github.com/KEIROFPS/Dotfiles-For-my-cachyos-install-.git
+git clone https://github.com/KEIROFPS/Dotfiles.git
 
 cd Dotfiles
 
