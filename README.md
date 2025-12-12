@@ -23,7 +23,7 @@ How to Use
 
 First, clone the repository to your system:
 
-git clone https://github.com/KEIROFPS/Dotfiles-For-my-cachyos-install-/
+git clone https://github.com/KEIROFPS/Dotfiles-For-my-cachyos-install-.git
 cd my-setup-scripts
 
 2. Review the Script (Optional but Recommended)
