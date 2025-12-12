@@ -69,9 +69,9 @@ You can also check if any packages failed to install by reviewing the output dur
 
 Custom Configuration Files
 
-The configs/ directory contains several default configuration files (e.g., .bashrc, .zshrc, .vimrc, .gitconfig). If you want to customize these files further:
+The configs / directory contains several default configuration files (e.g., .bashrc, .zshrc, .vimrc, .gitconfig). If you want to customize these files further:
 
-Modify the files in the configs/ directory.
+Modify the files in the configs / directory.
 
 Push the changes to your GitHub repository.
 
