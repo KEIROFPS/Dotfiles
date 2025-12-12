@@ -45,6 +45,7 @@ PACKAGES=(
     "kdenlive"    # Editor
     "krita"    # Picture editor
     "cameractrls"    # Camera editor
+    "paru"    #Paru aur helper
 )
 
 # AUR helpers
@@ -172,6 +173,25 @@ EOF
 udevadm control --reload-rules
 udevadm trigger
 echo "WebHID/WebUSB rules configured - browsers can now access USB/HID devices" >> "$LOG_FILE"
+
+# Step 8a: Copy Plasma applet configuration file (plasma-org.kde.plasma.desktop-appletsrc)
+echo "Copying Plasma applet configuration file..." >> "$LOG_FILE"
+if [ ! -d "$CONFIG_SRC" ]; then
+    echo "Configuration source directory $CONFIG_SRC not found!" >> "$LOG_FILE"
+    exit 1
+fi
+
+APPLET_FILE="plasma-org.kde.plasma.desktop-appletsrc"
+if [ -f "$CONFIG_SRC/$APPLET_FILE" ]; then
+    echo "Backing up existing Plasma applet configuration..." >> "$LOG_FILE"
+    mv "$HOME_DIR/.config/$APPLET_FILE" "$HOME_DIR/.config/${APPLET_FILE}.bak"
+    cp "$CONFIG_SRC/$APPLET_FILE" "$HOME_DIR/.config/$APPLET_FILE"
+    chown $USER:$USER "$HOME_DIR/.config/$APPLET_FILE"
+    echo "Plasma applet configuration copied!" >> "$LOG_FILE"
+else
+    echo "Plasma applet configuration file $APPLET_FILE not found in source directory!" >> "$LOG_FILE"
+fi
+
 
 # Step 9: Copy configuration files (if you have custom ones)
 echo "Copying configuration files..." >> "$LOG_FILE"
