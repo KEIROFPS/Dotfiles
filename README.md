@@ -79,6 +79,7 @@ Dotfiles/
 
 ├── script.sh   
 └── configs/
+
  ├── .bashrc   
  ├── .zshrc    
  └── alacritty.yml
