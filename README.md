@@ -14,7 +14,7 @@ Configures services and system settings for optimized performance.
 
 Requirements
 
-Arch Linux or an Arch-based distro.
+CachyOS or Arch Linux or an Arch-based distro.
 
 Root privileges: The script needs to be run with sudo to install packages and modify system files.
 
@@ -24,7 +24,7 @@ How to Use
 First, clone the repository to your system:
 
 git clone https://github.com/KEIROFPS/Dotfiles-For-my-cachyos-install-.git
-cd my-setup-scripts
+cd Dotfiles-For-my-cachyos-install
 
 2. Review the Script (Optional but Recommended)
 
