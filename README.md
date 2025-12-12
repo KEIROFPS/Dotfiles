@@ -5,12 +5,8 @@ This repository contains a setup script that automates the installation of vario
 What This Script Does
 
 Installs packages from the Arch Linux repositories and the AUR.
-
 Installs fonts, themes, and icons for a custom look and feel.
-
 Configures the system with custom dotfiles (e.g., .bashrc, .zshrc, .vimrc, .gitconfig).
-
-Configures services and system settings for optimized performance.
 
 Requirements
 
@@ -24,7 +20,8 @@ How to Use
 First, clone the repository to your system:
 
 git clone https://github.com/KEIROFPS/Dotfiles-For-my-cachyos-install-.git
-cd Dotfiles-For-my-cachyos-install
+
+cd Dotfiles
 
 2. Review the Script (Optional but Recommended)
 
