@@ -1,4 +1,4 @@
-This repository contains a setup script that automates the installation of various packages, configuration files, and personal preferences for a clean and efficient Linux setup.
+This repository contains a setup script that automates the installation of various packages, configuration files, and personal preferences for a clean and nice looking linux.
 
 What This Script Does
 
