@@ -79,8 +79,13 @@ Example Directory Structure
 Here's what the structure of this repository should look like:
 
 Dotfiles/
+
 ├── script.sh   
+
 └── configs/
+
     ├── .bashrc   
     ├── .zshrc    
     └── alacritty.yml
+
+    
