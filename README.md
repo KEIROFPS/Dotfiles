@@ -8,7 +8,7 @@ Configures the system with custom dotfiles (e.g., .bashrc, .zshrc, .alacritty).
 
 Requirements
 
-CachyOS or Arch Linux or an Arch-based distro.
+CachyOS or an Arch-based distro.
 
 Root privileges: The script needs to be run with sudo to install packages and modify system files.
 
