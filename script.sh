@@ -43,6 +43,8 @@ PACKAGES=(
     "avidemux-qt"    # Editor simple
     "avidemux-cli"    # check above
     "kdenlive"    # Editor
+    "krita"    # Picture editor
+    "cameractrls"    # Camera editor
 )
 
 # AUR helpers
@@ -91,6 +93,8 @@ AUR_PACKAGES=(
     "coolercontrol-bin"
     "liquidctl"
     "lm_sensors"
+    "stremio"
+    "chatterino2-git"
 )
 if ! $AUR_HELPER -S --noconfirm "${AUR_PACKAGES[@]}" >> "$LOG_FILE" 2>&1; then
     echo "Failed to install AUR packages!" >> "$LOG_FILE"
