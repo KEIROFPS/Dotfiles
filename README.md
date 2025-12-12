@@ -17,9 +17,8 @@ How to Use
 
 First, clone the repository to your system:
 
-git clone https://github.com/KEIROFPS/Dotfiles.git
-
-cd Dotfiles
+    git clone https://github.com/KEIROFPS/Dotfiles.git
+    cd Dotfiles
 
 2. Review the Script (Optional but Recommended)
 
