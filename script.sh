@@ -37,6 +37,11 @@ PACKAGES=(
     "qbittorrent" # Torrent client
     "obs-studio-browser" # Streaming
     "cpupower"    # CPU governor
+    "btop"        # btop
+    "easyeffects"    # Microphone stuff & headphones
+    "gpu-screen-recorder"    #Simple screen recorder
+    "avidemux-qt"    #Editor simple
+    "avidemux-cli"    # check above
 )
 
 # AUR helpers
