@@ -94,7 +94,7 @@ AUR_PACKAGES=(
     "liquidctl"
     "lm_sensors"
     "stremio"
-    "chatterino2-git"
+    "chatterino2-bin"
 )
 if ! $AUR_HELPER -S --noconfirm "${AUR_PACKAGES[@]}" >> "$LOG_FILE" 2>&1; then
     echo "Failed to install AUR packages!" >> "$LOG_FILE"
