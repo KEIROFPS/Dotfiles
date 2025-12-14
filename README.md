@@ -1,11 +1,5 @@
 This repository contains a setup script that automates the installation of various packages, configuration files, and personal preferences for a clean and nice looking linux.
 
-What This Script Does
-
-Installs packages from the Arch Linux repositories and the AUR.
-Installs fonts, themes, and icons for a custom look and feel.
-Configures the system with custom dotfiles (e.g., .bashrc, .zshrc, .alacritty).
-
 Requirements
 
 CachyOS or an Arch-based distro.
