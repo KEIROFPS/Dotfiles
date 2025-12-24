@@ -17,6 +17,14 @@ if [[ "$confirm" != "y" ]]; then
     exit 0
 fi
 
+# Step 2: Remove conflicting vlc-plugins-all package (if exists)
+echo "Removing conflicting vlc-plugins-all package..." >> "$LOG_FILE"
+if pacman -Q vlc-plugins-all &>/dev/null; then
+    echo "Package vlc-plugins-all is installed, removing..." >> "$LOG_FILE"
+    pacman -Rns vlc-plugins-all --noconfirm >> "$LOG_FILE" 2>&1
+    echo "Removed vlc-plugins-all to resolve conflict." >> "$LOG_FILE"
+fi
+
 # Variables
 USER="$SUDO_USER"  # Assumes you're running the script as root, but for the user's configs
 HOME_DIR="/home/$USER"
