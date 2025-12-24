@@ -73,8 +73,10 @@ if ! pacman -S --noconfirm "${PACKAGES[@]}" >> "$LOG_FILE" 2>&1; then
     exit 1
 fi
 
-# Step 3: Install AUR packages (if using yay)
+# Step 3: Install AUR packages (if using paru)
 echo "Installing AUR packages with $AUR_HELPER..." >> "$LOG_FILE"
+
+# Check if AUR helper is installed
 if ! command -v $AUR_HELPER &> /dev/null; then
     echo "$AUR_HELPER is not installed, installing it now..." >> "$LOG_FILE"
     if ! pacman -S --noconfirm $AUR_HELPER >> "$LOG_FILE" 2>&1; then
@@ -83,7 +85,7 @@ if ! command -v $AUR_HELPER &> /dev/null; then
     fi
 fi
 
-# Install AUR packages
+# Install AUR packages as the normal user (not root)
 AUR_PACKAGES=(
     "zsh-syntax-highlighting"
     "powerlevel10k"
@@ -105,10 +107,16 @@ AUR_PACKAGES=(
     "stremio"
     "chatterino2-bin"
 )
-if ! $AUR_HELPER -S --noconfirm "${AUR_PACKAGES[@]}" >> "$LOG_FILE" 2>&1; then
+
+# Run the AUR helper command as the normal user
+echo "Running AUR helper $AUR_HELPER to install packages..." >> "$LOG_FILE"
+sudo -u $USER $AUR_HELPER -S --noconfirm "${AUR_PACKAGES[@]}" >> "$LOG_FILE" 2>&1
+if [ $? -ne 0 ]; then
     echo "Failed to install AUR packages!" >> "$LOG_FILE"
     exit 1
 fi
+
+echo "AUR packages installed successfully!" >> "$LOG_FILE"
 
 # Step 4: Install Paper Mono font
 echo "Installing Paper Mono font..." >> "$LOG_FILE"
