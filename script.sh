@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Set TMPDIR to use /var/tmp instead of /tmp
+export TMPDIR="/var/tmp"
+
 # Log file for tracking installation progress and errors
 LOG_FILE="/tmp/install_log.txt"
 echo "Starting installation process..." > "$LOG_FILE"
@@ -24,11 +27,12 @@ for tool in git curl wget; do
     fi
 done
 
-# Check available disk space (1GB minimum)
-REQUIRED_SPACE=1000000000  # Minimum space in bytes (1GB)
-AVAILABLE_SPACE=$(df / | tail -n 1 | awk '{print $4}')
+# Check available space in /var/tmp (1GB required)
+REQUIRED_SPACE=1000000000  # 1GB in bytes
+AVAILABLE_SPACE=$(df /var/tmp | tail -n 1 | awk '{print $4}')
+
 if [ "$AVAILABLE_SPACE" -lt "$REQUIRED_SPACE" ]; then
-    echo "Not enough disk space. Please free up space and try again." >> "$LOG_FILE"
+    echo "Not enough space in /var/tmp. Available space: $AVAILABLE_SPACE bytes." >> "$LOG_FILE"
     exit 1
 fi
 
@@ -39,7 +43,7 @@ if [[ "$confirm" != "y" ]]; then
     exit 0
 fi
 
-# Step 2: Remove conflicting vlc-plugins-all package (if exists)
+# Step 1: Remove conflicting vlc-plugins-all package (if exists)
 echo "Removing conflicting vlc-plugins-all package..." >> "$LOG_FILE"
 if pacman -Q vlc-plugins-all &>/dev/null; then
     echo "Package vlc-plugins-all is installed, removing..." >> "$LOG_FILE"
@@ -213,6 +217,25 @@ udevadm control --reload-rules
 udevadm trigger
 echo "WebHID/WebUSB rules configured - browsers can now access USB/HID devices" >> "$LOG_FILE"
 
+# Step 8a: Copy Plasma applet configuration file (plasma-org.kde.plasma.desktop-appletsrc)
+echo "Copying Plasma applet configuration file..." >> "$LOG_FILE"
+if [ ! -d "$CONFIG_SRC" ]; then
+    echo "Configuration source directory $CONFIG_SRC not found!" >> "$LOG_FILE"
+    exit 1
+fi
+
+APPLET_FILE="plasma-org.kde.plasma.desktop-appletsrc"
+if [ -f "$CONFIG_SRC/$APPLET_FILE" ]; then
+    echo "Backing up existing Plasma applet configuration..." >> "$LOG_FILE"
+    mv "$HOME_DIR/.config/$APPLET_FILE" "$HOME_DIR/.config/${APPLET_FILE}.bak"
+    cp "$CONFIG_SRC/$APPLET_FILE" "$HOME_DIR/.config/$APPLET_FILE"
+    chown $USER:$USER "$HOME_DIR/.config/$APPLET_FILE"
+    echo "Plasma applet configuration copied!" >> "$LOG_FILE"
+else
+    echo "Plasma applet configuration file $APPLET_FILE not found in source directory!" >> "$LOG_FILE"
+fi
+
+
 # Step 9: Copy configuration files (if you have custom ones)
 echo "Copying configuration files..." >> "$LOG_FILE"
 if [ ! -d "$CONFIG_SRC" ]; then
@@ -227,16 +250,13 @@ CONFIG_FILES=(
 )
 
 for file in "${CONFIG_FILES[@]}"; do
-    # Check if the file already exists in the user's home directory
     if [ -f "$HOME_DIR/$file" ]; then
         echo "Backing up existing $file..." >> "$LOG_FILE"
         mv "$HOME_DIR/$file" "$HOME_DIR/${file}.bak"
     fi
-
-    # If the file exists in the source directory, copy it
     if [ -f "$CONFIG_SRC/$file" ]; then
         if [[ "$file" == "alacritty.yml" ]]; then
-            # Special case for alacritty.yml, handle it within .config/alacritty directory
+            # Special case for alacritty.yml
             mkdir -p "$HOME_DIR/.config/alacritty"
             cp "$CONFIG_SRC/$file" "$HOME_DIR/.config/alacritty/$file"
             chown -R $USER:$USER "$HOME_DIR/.config/alacritty"
@@ -244,39 +264,9 @@ for file in "${CONFIG_FILES[@]}"; do
         else
             cp "$CONFIG_SRC/$file" "$HOME_DIR/$file"
             chown $USER:$USER "$HOME_DIR/$file"
-            echo "Copied $file configuration!" >> "$LOG_FILE"
         fi
     else
-        echo "Configuration file $file not found in source directory! Creating default..." >> "$LOG_FILE"
-        
-        # If file is missing, create a simple default file
-        case "$file" in
-            ".bashrc")
-                echo "# Default .bashrc" > "$HOME_DIR/$file"
-                echo "echo 'Welcome to your new shell!'" >> "$HOME_DIR/$file"
-                ;;
-            ".zshrc")
-                echo "# Default .zshrc" > "$HOME_DIR/$file"
-                echo "export ZSH=\$HOME/.oh-my-zsh" >> "$HOME_DIR/$file"
-                echo "source \$ZSH/oh-my-zsh.sh" >> "$HOME_DIR/$file"
-                ;;
-            "alacritty.yml")
-                # A minimal default alacritty configuration
-                echo "window:
-  dimensions:
-    columns: 120
-    lines: 40
-  background_opacity: 0.9
-  font:
-    size: 12" > "$HOME_DIR/.config/alacritty/$file"
-                ;;
-            *)
-                echo "# Default $file" > "$HOME_DIR/$file"
-                echo "echo 'This is a default configuration file.'" >> "$HOME_DIR/$file"
-                ;;
-        esac
-        chown $USER:$USER "$HOME_DIR/$file"
-        echo "Created default $file configuration!" >> "$LOG_FILE"
+        echo "Configuration file $file not found in source directory!" >> "$LOG_FILE"
     fi
 done
 
@@ -297,9 +287,4 @@ cpupower frequency-set --governor performance >> "$LOG_FILE" 2>&1
 echo "Installation complete!" >> "$LOG_FILE"
 echo "Please reboot your system to apply all changes." >> "$LOG_FILE"
 echo "Installation log saved to $LOG_FILE"
-
-# Cleanup orphaned packages and package cache
-pacman -Rns $(pacman -Qdtq) --noconfirm >> "$LOG_FILE" 2>&1  # Remove orphaned packages
-pacman -Scc --noconfirm >> "$LOG_FILE" 2>&1  # Clean package cache
-
 exit
