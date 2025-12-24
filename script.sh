@@ -10,6 +10,28 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
+# Check for network connectivity
+if ! ping -c 1 8.8.8.8 &> /dev/null; then
+    echo "Network is not available. Please check your internet connection." >> "$LOG_FILE"
+    exit 1
+fi
+
+# Check required tools (git, curl, wget)
+for tool in git curl wget; do
+    if ! command -v "$tool" &> /dev/null; then
+        echo "$tool is not installed, installing it now..." >> "$LOG_FILE"
+        pacman -S --noconfirm "$tool" >> "$LOG_FILE" 2>&1
+    fi
+done
+
+# Check available disk space (1GB minimum)
+REQUIRED_SPACE=1000000000  # Minimum space in bytes (1GB)
+AVAILABLE_SPACE=$(df / | tail -n 1 | awk '{print $4}')
+if [ "$AVAILABLE_SPACE" -lt "$REQUIRED_SPACE" ]; then
+    echo "Not enough disk space. Please free up space and try again." >> "$LOG_FILE"
+    exit 1
+fi
+
 # Prompt for confirmation before proceeding
 read -p "This will install keiros packages and copy configuration files. Continue? (y/n): " confirm
 if [[ "$confirm" != "y" ]]; then
@@ -191,25 +213,6 @@ udevadm control --reload-rules
 udevadm trigger
 echo "WebHID/WebUSB rules configured - browsers can now access USB/HID devices" >> "$LOG_FILE"
 
-# Step 8a: Copy Plasma applet configuration file (plasma-org.kde.plasma.desktop-appletsrc)
-echo "Copying Plasma applet configuration file..." >> "$LOG_FILE"
-if [ ! -d "$CONFIG_SRC" ]; then
-    echo "Configuration source directory $CONFIG_SRC not found!" >> "$LOG_FILE"
-    exit 1
-fi
-
-APPLET_FILE="plasma-org.kde.plasma.desktop-appletsrc"
-if [ -f "$CONFIG_SRC/$APPLET_FILE" ]; then
-    echo "Backing up existing Plasma applet configuration..." >> "$LOG_FILE"
-    mv "$HOME_DIR/.config/$APPLET_FILE" "$HOME_DIR/.config/${APPLET_FILE}.bak"
-    cp "$CONFIG_SRC/$APPLET_FILE" "$HOME_DIR/.config/$APPLET_FILE"
-    chown $USER:$USER "$HOME_DIR/.config/$APPLET_FILE"
-    echo "Plasma applet configuration copied!" >> "$LOG_FILE"
-else
-    echo "Plasma applet configuration file $APPLET_FILE not found in source directory!" >> "$LOG_FILE"
-fi
-
-
 # Step 9: Copy configuration files (if you have custom ones)
 echo "Copying configuration files..." >> "$LOG_FILE"
 if [ ! -d "$CONFIG_SRC" ]; then
@@ -294,4 +297,9 @@ cpupower frequency-set --governor performance >> "$LOG_FILE" 2>&1
 echo "Installation complete!" >> "$LOG_FILE"
 echo "Please reboot your system to apply all changes." >> "$LOG_FILE"
 echo "Installation log saved to $LOG_FILE"
+
+# Cleanup orphaned packages and package cache
+pacman -Rns $(pacman -Qdtq) --noconfirm >> "$LOG_FILE" 2>&1  # Remove orphaned packages
+pacman -Scc --noconfirm >> "$LOG_FILE" 2>&1  # Clean package cache
+
 exit
