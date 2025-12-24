@@ -224,13 +224,16 @@ CONFIG_FILES=(
 )
 
 for file in "${CONFIG_FILES[@]}"; do
+    # Check if the file already exists in the user's home directory
     if [ -f "$HOME_DIR/$file" ]; then
         echo "Backing up existing $file..." >> "$LOG_FILE"
         mv "$HOME_DIR/$file" "$HOME_DIR/${file}.bak"
     fi
+
+    # If the file exists in the source directory, copy it
     if [ -f "$CONFIG_SRC/$file" ]; then
         if [[ "$file" == "alacritty.yml" ]]; then
-            # Special case for alacritty.yml
+            # Special case for alacritty.yml, handle it within .config/alacritty directory
             mkdir -p "$HOME_DIR/.config/alacritty"
             cp "$CONFIG_SRC/$file" "$HOME_DIR/.config/alacritty/$file"
             chown -R $USER:$USER "$HOME_DIR/.config/alacritty"
@@ -238,9 +241,39 @@ for file in "${CONFIG_FILES[@]}"; do
         else
             cp "$CONFIG_SRC/$file" "$HOME_DIR/$file"
             chown $USER:$USER "$HOME_DIR/$file"
+            echo "Copied $file configuration!" >> "$LOG_FILE"
         fi
     else
-        echo "Configuration file $file not found in source directory!" >> "$LOG_FILE"
+        echo "Configuration file $file not found in source directory! Creating default..." >> "$LOG_FILE"
+        
+        # If file is missing, create a simple default file
+        case "$file" in
+            ".bashrc")
+                echo "# Default .bashrc" > "$HOME_DIR/$file"
+                echo "echo 'Welcome to your new shell!'" >> "$HOME_DIR/$file"
+                ;;
+            ".zshrc")
+                echo "# Default .zshrc" > "$HOME_DIR/$file"
+                echo "export ZSH=\$HOME/.oh-my-zsh" >> "$HOME_DIR/$file"
+                echo "source \$ZSH/oh-my-zsh.sh" >> "$HOME_DIR/$file"
+                ;;
+            "alacritty.yml")
+                # A minimal default alacritty configuration
+                echo "window:
+  dimensions:
+    columns: 120
+    lines: 40
+  background_opacity: 0.9
+  font:
+    size: 12" > "$HOME_DIR/.config/alacritty/$file"
+                ;;
+            *)
+                echo "# Default $file" > "$HOME_DIR/$file"
+                echo "echo 'This is a default configuration file.'" >> "$HOME_DIR/$file"
+                ;;
+        esac
+        chown $USER:$USER "$HOME_DIR/$file"
+        echo "Created default $file configuration!" >> "$LOG_FILE"
     fi
 done
 
