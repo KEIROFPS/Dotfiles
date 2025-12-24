@@ -11,7 +11,7 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 
 # Prompt for confirmation before proceeding
-read -p "This will install your packages and copy configuration files. Continue? (y/n): " confirm
+read -p "This will install keiros packages and copy configuration files. Continue? (y/n): " confirm
 if [[ "$confirm" != "y" ]]; then
     echo "Aborting installation." >> "$LOG_FILE"
     exit 0
