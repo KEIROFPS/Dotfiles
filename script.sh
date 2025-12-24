@@ -90,7 +90,6 @@ fi
 # Install AUR packages as the normal user (not root)
 AUR_PACKAGES=(
     "zsh-syntax-highlighting"
-    "powerlevel10k"
     "discord-ptb"
     "pano-scrobbler-bin"
     "kew"
