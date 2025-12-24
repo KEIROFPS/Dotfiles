@@ -83,6 +83,8 @@ if ! command -v $AUR_HELPER &> /dev/null; then
         echo "Failed to install AUR helper $AUR_HELPER" >> "$LOG_FILE"
         exit 1
     fi
+else
+    echo "$AUR_HELPER is already installed." >> "$LOG_FILE"
 fi
 
 # Install AUR packages as the normal user (not root)
