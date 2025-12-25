@@ -3,7 +3,7 @@ set -Eeuo pipefail
 trap 'echo "FAILED at line $LINENO"' ERR
 
 ### -------------------- LOGGING --------------------
-LOG_FILE="/tmp/install_log.txt"
+LOG_FILE="/tmp/install_log_$(date +%Y%m%d_%H%M%S).txt"
 exec > >(tee -a "$LOG_FILE") 2>&1
 
 echo "=== Arch + KDE Zero-Click Provisioning ==="
@@ -12,7 +12,7 @@ echo "=== Arch + KDE Zero-Click Provisioning ==="
 [[ $EUID -eq 0 ]] || { echo "Run with sudo"; exit 1; }
 
 ### -------------------- USER DETECTION --------------------
-USER_NAME="${SUDO_USER:-$(logname 2>/dev/null || true)}"
+USER_NAME="${SUDO_USER:-${USER:-$(logname 2>/dev/null || true)}}"
 [[ -n "$USER_NAME" ]] && id "$USER_NAME" &>/dev/null || {
     echo "Could not detect user"
     exit 1
@@ -38,10 +38,16 @@ TMPDIR="$DOTFILES_DIR/temp"
 mkdir -p "$TMPDIR"
 chown -R "$USER_NAME:$USER_NAME" "$TMPDIR"
 
+# Ensure TMPDIR cleanup on exit
+trap 'rm -rf "$TMPDIR"' EXIT
+
 echo "Dotfiles: $DOTFILES_DIR"
 
 ### -------------------- NETWORK CHECK --------------------
-ping -c1 archlinux.org >/dev/null || { echo "No network connection"; exit 1; }
+if ! ping -c1 archlinux.org >/dev/null 2>&1; then
+    echo "No network connection"
+    exit 1
+fi
 
 ### -------------------- BASE TOOLS --------------------
 pacman -Syu --needed --noconfirm git curl wget unzip base-devel
@@ -204,9 +210,21 @@ else
     echo "⚠️ Bibata cursor NOT set"
 fi
 
-### -------------------- RESTART PLASMASHELL --------------------
-echo "Restarting Plasma Shell..."
-killall plasmashell || true
-kstart5 plasmashell &
+### -------------------- RESTART PLASMASHELL (USER CONTEXT) --------------------
+echo "Restarting Plasma Shell safely..."
+
+if [[ -n "$DISPLAY" ]]; then
+    runuser -u "$USER_NAME" -- bash -c '
+        if pgrep -x plasmashell >/dev/null; then
+            echo "Stopping plasmashell..."
+            killall plasmashell
+            sleep 2
+        fi
+        echo "Starting plasmashell..."
+        kstart5 plasmashell &
+    '
+else
+    echo "No graphical session detected. Skipping Plasma restart — reboot recommended."
+fi
 
 echo "=== DONE — REBOOT RECOMMENDED ==="
