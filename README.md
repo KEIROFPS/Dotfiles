@@ -18,14 +18,13 @@ First, clone the repository to your system:
 
 Before running the script, it's a good idea to review the script.sh to ensure it does what you want. Open it in any text editor:
 
-nano script.sh
+nano install.sh
 
 3. Run the Script
 
 To run the script and apply the setup:
 
     sudo bash install.sh
-
 
 The script will:
 
@@ -36,38 +35,6 @@ Update your system and install the required packages.
 Copy over your configuration files (e.g., .bashrc, .zshrc, .gitconfig, etc.).
 
 Set up fonts, themes, and other personal preferences.
-
-4. Follow Post-Installation Instructions
-
-Once the script has finished, you may need to manually apply themes and icons:
-
-Apply the Monochrome KDE Global Theme and Bibata Original Classic cursor from System Settings > Appearance > Global Theme and Cursors.
-
-Apply the Snowy icon theme in System Settings > Appearance > Icons.
-
-5. Reboot or Log Out
-
-After the script finishes, it's a good idea to reboot your system or log out and back in for the changes to take full effect.
-
-Troubleshooting
-
-If the script fails or you encounter any issues, the log file located at /tmp/install_log.txt will contain detailed information about what went wrong.
-
-You can also check if any packages failed to install by reviewing the output during script execution.
-
-Custom Configuration Files
-
-The configs / directory contains several default configuration files (e.g., .bashrc, .zshrc, .vimrc, .gitconfig). If you want to customize these files further:
-
-Modify the files in the configs / directory.
-
-Push the changes to your GitHub repository.
-
-When others run the script, these files will be copied into their home directories automatically.
-
-Example Directory Structure
-
-Here's what the structure of this repository should look like:
 
 Dotfiles/
 
