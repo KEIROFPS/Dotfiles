@@ -91,18 +91,24 @@ mkdir -p "$TMP_ICONS"
 rm -f "$TMP_ICONS"/*.tar.xz
 
 # -------------------- Snowy Icons --------------------
-SNOWY_URL="https://s341vla.storage.yandex.net/rdisk/762d6bda094ad80ac18f08f6b10d7580ef81c50b145721a8462741009f4d67b5/694cbb1d/LrLIAmix5hqiqjtvOniV8Ei4DhrHQAMRA51gS4VUD3KzJ6weCaorNb8hdKlvwFy6GJ5Dmw1PWx30m7QKk6wmnQ==?uid=0&filename=Snowy%20icons.tar.xz"
+SNOWY_SHARE_URL="https://disk.yandex.ru/d/kVzafq1ptMV4R"
+SNOWY_API_URL="https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key=${SNOWY_SHARE_URL}"
+
+echo "Resolving Snowy icons download link..."
+SNOWY_REAL_URL=$(curl -fsSL "$SNOWY_API_URL" | sed -n 's/.*"href":"\([^"]*\)".*/\1/p')
+
+[[ -n "$SNOWY_REAL_URL" ]] || { echo "Failed to resolve Snowy icons URL"; exit 1; }
 
 echo "Downloading Snowy icons..."
-wget -O "$TMP_ICONS/snowy.tar.xz" "$SNOWY_URL"
+wget -O "$TMP_ICONS/snowy.tar.xz" "$SNOWY_REAL_URL"
 
 echo "Extracting Snowy icons..."
 tar -xf "$TMP_ICONS/snowy.tar.xz" -C "$TMP_ICONS"
 
-SNOWY_DIR=$(find "$TMP_ICONS" -maxdepth 1 -type d -name "Snowy*" | head -n1)
+SNOWY_DIR=$(find "$TMP_ICONS" -maxdepth 1 -type d -iname "Snowy*" | head -n1)
 [[ -n "$SNOWY_DIR" ]] || { echo "Snowy icons folder not found"; exit 1; }
 
-SNOWY_THEME_NAME=$(basename "$SNOWY_DIR")  # Keep full folder name
+SNOWY_THEME_NAME="$(basename "$SNOWY_DIR")"
 cp -r "$SNOWY_DIR" "$HOME_DIR/.local/share/icons/"
 
 # -------------------- Bibata Cursor --------------------
