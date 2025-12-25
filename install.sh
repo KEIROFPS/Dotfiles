@@ -80,7 +80,7 @@ install -m644 "$TMPDIR/paper-mono/fonts/ttf/"*.ttf /usr/share/fonts/TTF/
 fc-cache -r
 rm -rf "$TMPDIR/paper-mono"
 
-### -------------------- KDE THEME --------------------
+### -------------------- KDE COLOR SCHEME --------------------
 runuser -u "$USER_NAME" -- git clone https://gitlab.com/pwyde/monochrome-kde.git "$TMPDIR/mono"
 runuser -u "$USER_NAME" -- bash -c "cd $TMPDIR/mono && ./install.sh --install"
 rm -rf "$TMPDIR/mono"
@@ -92,14 +92,10 @@ TMP_ICONS="$TMPDIR/icons_temp"
 
 mkdir -p "$TMP_ICONS"
 
-echo "Resolving Snowy icons download link..."
 SNOWY_REAL_URL=$(curl -fsSL "$SNOWY_API_URL" | sed -n 's/.*"href":"\([^"]*\)".*/\1/p')
 [[ -n "$SNOWY_REAL_URL" ]] || { echo "Failed to resolve Snowy icons URL"; exit 1; }
 
-echo "Downloading Snowy icons..."
 wget -qO "$TMP_ICONS/snowy.tar.xz" "$SNOWY_REAL_URL"
-
-echo "Extracting Snowy icons..."
 tar -xf "$TMP_ICONS/snowy.tar.xz" -C "$TMP_ICONS"
 
 SNOWY_DIR=$(find "$TMP_ICONS" -maxdepth 1 -type d -iname "Snowy*" | head -n1)
@@ -114,7 +110,6 @@ chmod -R a+rX "/usr/share/icons/$SNOWY_THEME_NAME"
 gtk-update-icon-cache "/usr/share/icons/$SNOWY_THEME_NAME" || true
 
 rm -rf "$TMP_ICONS"
-echo "Icons installed: $SNOWY_THEME_NAME"
 
 ### -------------------- BIBATA CURSOR --------------------
 BIBATA_URL="https://github.com/ful1e5/Bibata_Cursor/releases/latest/download/Bibata-Original-Classic.tar.xz"
@@ -136,39 +131,35 @@ cp "$CONFIG_SRC/.zshrc" "$HOME_DIR/" 2>/dev/null || true
 cp "$CONFIG_SRC/alacritty.yml" "$HOME_DIR/.config/alacritty/" 2>/dev/null || true
 chown -R "$USER_NAME:$USER_NAME" "$HOME_DIR"
 
-### -------------------- KDE APPLY (SAFE, NO LNF) --------------------
-KW=kwriteconfig5
-KS=kstart5
-KQ=kquitapp5
+### -------------------- KDE CONFIG (NO DBUS, SAFE) --------------------
+CONFIG_DIR="$HOME_DIR/.config"
 
-command -v kwriteconfig6 &>/dev/null && KW=kwriteconfig6
-command -v kstart &>/dev/null && KS=kstart
-command -v kquitapp6 &>/dev/null && KQ=kquitapp6
+# Color scheme
+grep -q "^\[General\]" "$CONFIG_DIR/kdeglobals" 2>/dev/null || echo "[General]" >> "$CONFIG_DIR/kdeglobals"
+sed -i 's/^ColorScheme=.*/ColorScheme=Monochrome/' "$CONFIG_DIR/kdeglobals" 2>/dev/null || true
+grep -q "ColorScheme=Monochrome" "$CONFIG_DIR/kdeglobals" || echo "ColorScheme=Monochrome" >> "$CONFIG_DIR/kdeglobals"
 
-DBUS_ENV="DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$(id -u "$USER_NAME")/bus"
+# Icons
+grep -q "^\[Icons\]" "$CONFIG_DIR/kdeglobals" || echo -e "\n[Icons]" >> "$CONFIG_DIR/kdeglobals"
+sed -i "s/^Theme=.*/Theme=$SNOWY_THEME_NAME/" "$CONFIG_DIR/kdeglobals" 2>/dev/null || true
+grep -q "Theme=$SNOWY_THEME_NAME" "$CONFIG_DIR/kdeglobals" || echo "Theme=$SNOWY_THEME_NAME" >> "$CONFIG_DIR/kdeglobals"
 
-runuser -u "$USER_NAME" -- env $DBUS_ENV \
-plasma-apply-colorscheme Monochrome || true
+# Cursor
+grep -q "^\[Mouse\]" "$CONFIG_DIR/kcminputrc" 2>/dev/null || echo "[Mouse]" >> "$CONFIG_DIR/kcminputrc"
+sed -i 's/^cursorTheme=.*/cursorTheme=Bibata-Original-Classic/' "$CONFIG_DIR/kcminputrc" 2>/dev/null || true
+grep -q "cursorTheme=Bibata-Original-Classic" "$CONFIG_DIR/kcminputrc" || echo "cursorTheme=Bibata-Original-Classic" >> "$CONFIG_DIR/kcminputrc"
 
-runuser -u "$USER_NAME" -- env $DBUS_ENV \
-"$KW" --file kdeglobals --group Icons --key Theme "$SNOWY_THEME_NAME"
+chown "$USER_NAME:$USER_NAME" \
+"$CONFIG_DIR/kdeglobals" \
+"$CONFIG_DIR/kcminputrc" 2>/dev/null || true
 
-runuser -u "$USER_NAME" -- env $DBUS_ENV \
-"$KW" --file kcminputrc --group Mouse --key cursorTheme Bibata-Original-Classic
-
-### -------------------- PLASMA BACKUP --------------------
+### -------------------- PLASMA LAYOUT FILES --------------------
 BACKUP_DIR="$HOME_DIR/.config_backup_$(date +%Y%m%d_%H%M%S)"
 mkdir -p "$BACKUP_DIR"
 
 for file in plasma-org.kde.plasma.desktop-appletsrc plasmarc kwinrc kdeglobals; do
-    [[ -f "$HOME_DIR/.config/$file" ]] && cp "$HOME_DIR/.config/$file" "$BACKUP_DIR/"
+    [[ -f "$CONFIG_DIR/$file" ]] && cp "$CONFIG_DIR/$file" "$BACKUP_DIR/"
 done
-
-chown -R "$USER_NAME:$USER_NAME" "$BACKUP_DIR"
-
-### -------------------- PLASMA LAYOUT --------------------
-runuser -u "$USER_NAME" -- "$KQ" plasmashell || true
-sleep 1
 
 if [[ "$HOSTNAME" == *desktop* ]] && [[ -f "$PLASMA_CFG/desktop-appletsrc-desktop" ]]; then
     LAYOUT="$PLASMA_CFG/desktop-appletsrc-desktop"
@@ -178,13 +169,11 @@ else
     LAYOUT="$(ls "$PLASMA_CFG"/desktop-appletsrc-* 2>/dev/null | head -n1)"
 fi
 
-[[ -n "${LAYOUT:-}" ]] || { echo "No Plasma layout found"; exit 1; }
+[[ -n "${LAYOUT:-}" ]] && \
+cp "$LAYOUT" "$CONFIG_DIR/plasma-org.kde.plasma.desktop-appletsrc"
 
-cp "$LAYOUT" "$HOME_DIR/.config/plasma-org.kde.plasma.desktop-appletsrc"
-cp "$PLASMA_CFG/"{plasmarc,kwinrc,kdeglobals} "$HOME_DIR/.config/" 2>/dev/null || true
-chown "$USER_NAME:$USER_NAME" "$HOME_DIR/.config/"*
-
-runuser -u "$USER_NAME" -- "$KS" plasmashell || true
+cp "$PLASMA_CFG/"{plasmarc,kwinrc,kdeglobals} "$CONFIG_DIR/" 2>/dev/null || true
+chown -R "$USER_NAME:$USER_NAME" "$CONFIG_DIR"
 
 ### -------------------- SERVICES --------------------
 systemctl enable --now NetworkManager
