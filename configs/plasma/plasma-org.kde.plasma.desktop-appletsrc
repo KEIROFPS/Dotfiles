@@ -6,8 +6,8 @@ RightButton;NoModifier=org.kde.contextmenu
 RightButton;NoModifier=org.kde.contextmenu
 
 [Containments][291]
-ItemGeometries-2560x1440=Applet-360:0,480,240,224,0;Applet-355:2288,464,272,256,0;
-ItemGeometriesHorizontal=Applet-360:0,480,240,224,0;Applet-355:2288,464,272,256,0;
+ItemGeometries-2560x1440=Applet-360:0,480,240,224,0;Applet-355:2288,464,272,272,0;
+ItemGeometriesHorizontal=Applet-360:0,480,240,224,0;Applet-355:2288,464,272,272,0;
 activityId=b789825d-3679-4023-b3b1-71030c48d1fe
 formfactor=0
 immutability=1
@@ -32,11 +32,31 @@ title=Disk Usage
 DialogHeight=630
 DialogWidth=810
 
-[Containments][291][Applets][355][Configuration][Sensors]
+[Containments][291][Applets][355][Configuration][SensorColors]
+disk/(?!all).*/usedPercent=116,115,114
 disk/.*/usedPercent=81,84,86
-disk/used=255,255,255
-disk/usedPercent=255,255,255
+disk/0b71dd7e-b8d7-4960-996d-93ad1e2b4d32/usedPercent=255,255,255
+disk/317f8614-809b-4f3e-a39d-04812c8ae30b/usedPercent=255,255,255
+disk/55c44a54-3e56-4684-b105-a278ce300485/freePercent=81,86,83
+disk/55c44a54-3e56-4684-b105-a278ce300485/used=255,255,255
+disk/55c44a54-3e56-4684-b105-a278ce300485/usedPercent=255,255,255
+disk/74ab25c8-977a-44e3-ae9c-2ac5a1dbdcf5/used=255,255,255
+disk/74ab25c8-977a-44e3-ae9c-2ac5a1dbdcf5/usedPercent=255,255,255
+disk/956da48d-c459-460a-83b6-c95ff40b00cf/usedPercent=255,255,255
 disk/all/usedPercent=86,83,81
+disk/c095b5f6-270e-490d-ae95-2a1ef0cf6417/usedPercent=255,255,255
+disk/d06ca8f3-afd8-4b53-b769-ba9831e52cb6/usedPercent=255,255,255
+
+[Containments][291][Applets][355][Configuration][SensorLabels]
+disk/0b71dd7e-b8d7-4960-996d-93ad1e2b4d32/usedPercent=Extra Percentage Used
+disk/317f8614-809b-4f3e-a39d-04812c8ae30b/usedPercent=Games Percentage Used
+disk/956da48d-c459-460a-83b6-c95ff40b00cf/usedPercent=Games Percentage Used
+disk/c095b5f6-270e-490d-ae95-2a1ef0cf6417/usedPercent=Extra Percentage Used
+
+[Containments][291][Applets][355][Configuration][Sensors]
+highPrioritySensorIds=["disk/d06ca8f3-afd8-4b53-b769-ba9831e52cb6/usedPercent","disk/956da48d-c459-460a-83b6-c95ff40b00cf/usedPercent","disk/c095b5f6-270e-490d-ae95-2a1ef0cf6417/usedPercent"]
+lowPrioritySensorIds=["disk/all/total"]
+totalSensors=["disk/all/usedPercent"]
 
 [Containments][291][Applets][360]
 immutability=1
@@ -47,12 +67,12 @@ DialogHeight=630
 DialogWidth=810
 
 [Containments][291][Applets][360][Configuration][General]
-colorHex=0,0,0
+colorHex=13,13,0
 
 [Containments][291][Wallpaper][org.kde.image][General]
 DynamicMode=2
-Image=file:///home/user/Pictures/wallpaper.jpg
-SlidePaths=/home/user/.local/share/wallpapers/,/usr/share/wallpapers/
+Image=file:///home/bryan/.local/share/wallpapers/Ned-Forest/
+SlidePaths=/home/bryan/.local/share/wallpapers/,/usr/share/wallpapers/
 
 [Containments][292]
 ItemGeometries-1080x1920=
@@ -66,8 +86,8 @@ plugin=org.kde.plasma.folder
 wallpaperplugin=org.kde.image
 
 [Containments][292][Wallpaper][org.kde.image][General]
-Image=file:///home/user/Pictures/wallpaper.jpg
-SlidePaths=/home/user/.local/share/wallpapers/,/usr/share/wallpapers/
+Image=file:///home/bryan/.local/share/wallpapers/Ned-Forest/
+SlidePaths=/home/bryan/.local/share/wallpapers/,/usr/share/wallpapers/
 
 [Containments][293]
 activityId=
@@ -105,14 +125,15 @@ immutability=1
 plugin=org.kde.plasma.icontasks
 
 [Containments][293][Applets][296][Configuration][General]
-launchers=applications:Alacritty.desktop,preferred://filemanager,preferred://browser,applications:discord-ptb.desktop,applications:steam.desktop,file:///var/lib/flatpak/exports/share/applications/com.mastermindzh.tidal-hifi.desktop,applications:com.obsproject.Studio.desktop
+launchers=applications:Alacritty.desktop,preferred://filemanager,applications:floorp.desktop,applications:discord-ptb.desktop,applications:steam.desktop,file:///var/lib/flatpak/exports/share/applications/com.mastermindzh.tidal-hifi.desktop,applications:com.obsproject.Studio.desktop
 
 [Containments][293][Applets][311]
 immutability=1
 plugin=org.kde.plasma.digitalclock
 
 [Containments][293][Applets][311][Configuration]
-popupHeight=375
+PreloadWeight=70
+popupHeight=451
 popupWidth=525
 
 [Containments][293][Applets][311][Configuration][Appearance]
@@ -171,7 +192,7 @@ immutability=1
 plugin=org.kde.plasma.volume
 
 [Containments][316][Applets][334][Applets][341][Configuration]
-PreloadWeight=55
+PreloadWeight=100
 
 [Containments][316][Applets][334][Applets][341][Configuration][General]
 migrated=true
@@ -182,6 +203,9 @@ PreloadWeight=42
 [Containments][316][Applets][334][Applets][343]
 immutability=1
 plugin=org.kde.plasma.networkmanagement
+
+[Containments][316][Applets][334][Applets][343][Configuration]
+PreloadWeight=60
 
 [Containments][316][Applets][334][Applets][344][Configuration]
 PreloadWeight=42
@@ -194,7 +218,7 @@ immutability=1
 plugin=org.kde.plasma.notifications
 
 [Containments][316][Applets][334][Applets][346][Configuration]
-PreloadWeight=85
+PreloadWeight=100
 
 [Containments][316][Applets][334][Applets][347][Configuration]
 PreloadWeight=42
@@ -310,7 +334,8 @@ immutability=1
 plugin=org.kde.plasma.digitalclock
 
 [Containments][316][Applets][351][Configuration]
-popupHeight=375
+PreloadWeight=70
+popupHeight=451
 popupWidth=525
 
 [Containments][316][Applets][351][Configuration][Appearance]
@@ -346,3 +371,7 @@ length=2544
 
 [Containments][316][General]
 AppletOrder=354;351;350;334;352
+
+[ScreenMapping]
+itemsOnDisabledScreens=
+screenMapping=
