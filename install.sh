@@ -204,4 +204,9 @@ else
     echo "⚠️ Bibata cursor NOT set"
 fi
 
+### -------------------- RESTART PLASMASHELL --------------------
+echo "Restarting Plasma Shell..."
+killall plasmashell || true
+kstart5 plasmashell &
+
 echo "=== DONE — REBOOT RECOMMENDED ==="
