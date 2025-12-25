@@ -90,15 +90,19 @@ rm -rf "$TMPDIR/mono"
 ### -------------------- ICONS & CURSOR --------------------
 mkdir -p "$HOME_DIR/.local/share/icons"
 
-wget -O "$TMPDIR/snowy.zip" "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/kVzafq1ptMV4R"
-unzip -o "$TMPDIR/snowy.zip" -d "$TMPDIR/snowy"
-cp -r "$TMPDIR/snowy/Snowy" "$HOME_DIR/.local/share/icons/"
+# Snowy icons (tar.xz)
+SNOWY_URL="https://s341vla.storage.yandex.net/rdisk/762d6bda094ad80ac18f08f6b10d7580ef81c50b145721a8462741009f4d67b5/694cbb1d/LrLIAmix5hqiqjtvOniV8Ei4DhrHQAMRA51gS4VUD3KzJ6weCaorNb8hdKlvwFy6GJ5Dmw1PWx30m7QKk6wmnQ==?uid=0&filename=Snowy%20icons.tar.xz&disposition=attachment&hash=niqBfoBBJeoXIp/6q0TfQysCFM71rILFS0XJX2WDEfo%3D&limit=0&content_type=application%2Fx-xz&owner_uid=26272584&fsize=970828300&hid=5699663c6a7e3265a0c6e29722ee3f8c&media_type=unknown&tknv=v3&ts=646bf121f4140&s=4d31c35b9a2dc7f5f1150580abee0f29f2723b498b8ef97591e14f906c08b7ee&pb=U2FsdGVkX191HQz40oM5Utb3YWEAOSvqms7KaH96rA7pvNzLOkCk_6QRhfAUSgm6RkC-3FOsTBft7xbMNU3B6empyjlVz05yFKTp5_WhwdA"
+wget -O "$TMPDIR/snowy.tar.xz" "$SNOWY_URL"
+tar -xf "$TMPDIR/snowy.tar.xz" -C "$TMPDIR"
+cp -r "$TMPDIR/Snowy" "$HOME_DIR/.local/share/icons/"
 
-wget -O "$TMPDIR/bibata.tar.xz" \
-https://github.com/ful1e5/Bibata_Cursor/releases/latest/download/Bibata-Original-Classic.tar.xz
+# Bibata cursor
+BIBATA_URL="https://github.com/ful1e5/Bibata_Cursor/releases/latest/download/Bibata-Original-Classic.tar.xz"
+wget -O "$TMPDIR/bibata.tar.xz" "$BIBATA_URL"
 tar -xf "$TMPDIR/bibata.tar.xz" -C "$HOME_DIR/.local/share/icons"
 
 chown -R "$USER_NAME:$USER_NAME" "$HOME_DIR/.local/share/icons"
+
 
 ### -------------------- OH MY ZSH --------------------
 [[ -d "$HOME_DIR/.oh-my-zsh" ]] || sudo -u "$USER_NAME" sh -c \
