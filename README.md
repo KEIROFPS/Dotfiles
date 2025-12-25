@@ -24,7 +24,7 @@ nano script.sh
 
 To run the script and apply the setup:
 
-sudo bash script.sh
+    sudo bash install.sh
 
 
 The script will:
