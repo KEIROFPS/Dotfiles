@@ -28,20 +28,10 @@ To run the script and apply the setup:
 
 The script will:
 
-Prompt you for confirmation before proceeding.
-
 Update your system and install the required packages.
 
 Copy over your configuration files (e.g., .bashrc, .zshrc, .gitconfig, etc.).
 
 Set up fonts, themes, and other personal preferences.
-
-Dotfiles/
-
-├── script.sh   
-└── configs/                   
- ├── .bashrc   
- ├── .zshrc    
- └── alacritty.yml
 
     
