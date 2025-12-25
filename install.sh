@@ -136,7 +136,7 @@ cp "$CONFIG_SRC/.zshrc" "$HOME_DIR/" 2>/dev/null || true
 cp "$CONFIG_SRC/alacritty.yml" "$HOME_DIR/.config/alacritty/" 2>/dev/null || true
 chown -R "$USER_NAME:$USER_NAME" "$HOME_DIR"
 
-### -------------------- KDE APPLY (PLASMA 5/6 SAFE) --------------------
+### -------------------- KDE APPLY (SAFE, NO LNF) --------------------
 KW=kwriteconfig5
 KS=kstart5
 KQ=kquitapp5
@@ -145,10 +145,16 @@ command -v kwriteconfig6 &>/dev/null && KW=kwriteconfig6
 command -v kstart &>/dev/null && KS=kstart
 command -v kquitapp6 &>/dev/null && KQ=kquitapp6
 
-runuser -u "$USER_NAME" -- lookandfeeltool -a org.kde.monochrome || true
-runuser -u "$USER_NAME" -- plasma-apply-colorscheme Monochrome || true
-runuser -u "$USER_NAME" -- "$KW" --file kdeglobals --group Icons --key Theme "$SNOWY_THEME_NAME"
-runuser -u "$USER_NAME" -- "$KW" --file kcminputrc --group Mouse --key cursorTheme Bibata-Original-Classic
+DBUS_ENV="DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$(id -u "$USER_NAME")/bus"
+
+runuser -u "$USER_NAME" -- env $DBUS_ENV \
+plasma-apply-colorscheme Monochrome || true
+
+runuser -u "$USER_NAME" -- env $DBUS_ENV \
+"$KW" --file kdeglobals --group Icons --key Theme "$SNOWY_THEME_NAME"
+
+runuser -u "$USER_NAME" -- env $DBUS_ENV \
+"$KW" --file kcminputrc --group Mouse --key cursorTheme Bibata-Original-Classic
 
 ### -------------------- PLASMA BACKUP --------------------
 BACKUP_DIR="$HOME_DIR/.config_backup_$(date +%Y%m%d_%H%M%S)"
