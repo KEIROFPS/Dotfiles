@@ -108,7 +108,6 @@ rm -rf "/usr/share/icons/$SNOWY_THEME_NAME"
 cp -r "$SNOWY_DIR" /usr/share/icons/
 chmod -R a+rX "/usr/share/icons/$SNOWY_THEME_NAME"
 gtk-update-icon-cache "/usr/share/icons/$SNOWY_THEME_NAME" || true
-
 rm -rf "$TMP_ICONS"
 
 ### -------------------- BIBATA CURSOR --------------------
@@ -131,7 +130,7 @@ cp "$CONFIG_SRC/.zshrc" "$HOME_DIR/" 2>/dev/null || true
 cp "$CONFIG_SRC/alacritty.yml" "$HOME_DIR/.config/alacritty/" 2>/dev/null || true
 chown -R "$USER_NAME:$USER_NAME" "$HOME_DIR"
 
-### -------------------- KDE CONFIG (NO DBUS, SAFE) --------------------
+### -------------------- KDE CONFIG (SAFE) --------------------
 CONFIG_DIR="$HOME_DIR/.config"
 
 # Color scheme
@@ -169,9 +168,7 @@ else
     LAYOUT="$(ls "$PLASMA_CFG"/desktop-appletsrc-* 2>/dev/null | head -n1)"
 fi
 
-[[ -n "${LAYOUT:-}" ]] && \
-cp "$LAYOUT" "$CONFIG_DIR/plasma-org.kde.plasma.desktop-appletsrc"
-
+[[ -n "${LAYOUT:-}" ]] && cp "$LAYOUT" "$CONFIG_DIR/plasma-org.kde.plasma.desktop-appletsrc"
 cp "$PLASMA_CFG/"{plasmarc,kwinrc,kdeglobals} "$CONFIG_DIR/" 2>/dev/null || true
 chown -R "$USER_NAME:$USER_NAME" "$CONFIG_DIR"
 
@@ -182,5 +179,29 @@ systemctl enable --now cpupower || true
 
 ### -------------------- CPU --------------------
 cpupower frequency-set --governor performance || true
+
+### -------------------- FINAL SANITY CHECK --------------------
+echo "=== SANITY CHECK ==="
+
+# Check Monochrome color scheme
+if grep -q "ColorScheme=Monochrome" "$CONFIG_DIR/kdeglobals"; then
+    echo "✅ Monochrome color scheme applied"
+else
+    echo "⚠️ Monochrome color scheme NOT applied"
+fi
+
+# Check Snowy icons
+if [[ -d "/usr/share/icons/$SNOWY_THEME_NAME" ]]; then
+    echo "✅ Snowy icons installed: $SNOWY_THEME_NAME"
+else
+    echo "⚠️ Snowy icons NOT found"
+fi
+
+# Check Bibata cursor
+if grep -q "cursorTheme=Bibata-Original-Classic" "$CONFIG_DIR/kcminputrc"; then
+    echo "✅ Bibata cursor set"
+else
+    echo "⚠️ Bibata cursor NOT set"
+fi
 
 echo "=== DONE — REBOOT RECOMMENDED ==="
