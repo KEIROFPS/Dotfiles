@@ -34,4 +34,9 @@ Copy over your configuration files (e.g., .bashrc, .zshrc, .gitconfig, etc.).
 
 Set up fonts, themes, and other personal preferences.
 
+IF THE THEMES DO NOT LOAD AFTER REBOOT TRY
+
+    rm -rf ~/.cache/plasma*
+
+
     
