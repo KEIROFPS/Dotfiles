@@ -1,5 +1,6 @@
 #!/bin/bash
 set -Eeuo pipefail
+trap 'echo "FAILED at line $LINENO"' ERR
 
 ### -------------------- LOGGING --------------------
 LOG_FILE="/tmp/install_log.txt"
@@ -40,10 +41,10 @@ chown -R "$USER_NAME:$USER_NAME" "$TMPDIR"
 echo "Dotfiles: $DOTFILES_DIR"
 
 ### -------------------- NETWORK CHECK --------------------
-curl -s https://archlinux.org >/dev/null || { echo "No network connection"; exit 1; }
+ping -c1 archlinux.org >/dev/null || { echo "No network connection"; exit 1; }
 
 ### -------------------- BASE TOOLS --------------------
-pacman -Syu --noconfirm git curl wget unzip base-devel
+pacman -Syu --needed --noconfirm git curl wget unzip base-devel
 
 ### -------------------- PACKAGES --------------------
 OFFICIAL_PACKAGES=(
@@ -62,45 +63,41 @@ AUR_PACKAGES=(
     chatterino2-bin pano-scrobbler-bin kew
 )
 
-pacman -S --noconfirm "${OFFICIAL_PACKAGES[@]}"
+pacman -S --needed --noconfirm "${OFFICIAL_PACKAGES[@]}"
 
-### -------------------- PARU (AUR HELPER) --------------------
+### -------------------- PARU --------------------
 if ! command -v paru &>/dev/null; then
-    sudo -u "$USER_NAME" git clone https://aur.archlinux.org/paru.git "$TMPDIR/paru"
-    sudo -u "$USER_NAME" bash -c "cd $TMPDIR/paru && makepkg -si --noconfirm"
+    runuser -u "$USER_NAME" -- git clone https://aur.archlinux.org/paru.git "$TMPDIR/paru"
+    runuser -u "$USER_NAME" -- bash -c "cd $TMPDIR/paru && makepkg -si --noconfirm"
 fi
 
-sudo -u "$USER_NAME" paru -S --noconfirm "${AUR_PACKAGES[@]}"
+runuser -u "$USER_NAME" -- paru -S --needed --noconfirm "${AUR_PACKAGES[@]}"
 
 ### -------------------- FONTS --------------------
 git clone https://github.com/paper-design/paper-mono.git "$TMPDIR/paper-mono"
-mkdir -p /usr/share/fonts/TTF
-cp "$TMPDIR/paper-mono/fonts/ttf/"*.ttf /usr/share/fonts/TTF/
-fc-cache -fv
+install -d /usr/share/fonts/TTF
+install -m644 "$TMPDIR/paper-mono/fonts/ttf/"*.ttf /usr/share/fonts/TTF/
+fc-cache -r
 rm -rf "$TMPDIR/paper-mono"
 
 ### -------------------- KDE THEME --------------------
-sudo -u "$USER_NAME" git clone https://gitlab.com/pwyde/monochrome-kde.git "$TMPDIR/mono"
-sudo -u "$USER_NAME" bash -c "cd $TMPDIR/mono && ./install.sh --install"
+runuser -u "$USER_NAME" -- git clone https://gitlab.com/pwyde/monochrome-kde.git "$TMPDIR/mono"
+runuser -u "$USER_NAME" -- bash -c "cd $TMPDIR/mono && ./install.sh --install"
 rm -rf "$TMPDIR/mono"
 
-### -------------------- ICONS & CURSOR --------------------
-mkdir -p "$HOME_DIR/.local/share/icons"
-TMP_ICONS="$TMPDIR/icons_temp"
-mkdir -p "$TMP_ICONS"
-rm -f "$TMP_ICONS"/*.tar.xz
-
-# -------------------- Snowy Icons --------------------
+### -------------------- ICONS (SNOWY) --------------------
 SNOWY_SHARE_URL="https://disk.yandex.ru/d/kVzafq1ptMV4R"
 SNOWY_API_URL="https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key=${SNOWY_SHARE_URL}"
+TMP_ICONS="$TMPDIR/icons_temp"
+
+mkdir -p "$TMP_ICONS"
 
 echo "Resolving Snowy icons download link..."
 SNOWY_REAL_URL=$(curl -fsSL "$SNOWY_API_URL" | sed -n 's/.*"href":"\([^"]*\)".*/\1/p')
-
 [[ -n "$SNOWY_REAL_URL" ]] || { echo "Failed to resolve Snowy icons URL"; exit 1; }
 
 echo "Downloading Snowy icons..."
-wget -O "$TMP_ICONS/snowy.tar.xz" "$SNOWY_REAL_URL"
+wget -qO "$TMP_ICONS/snowy.tar.xz" "$SNOWY_REAL_URL"
 
 echo "Extracting Snowy icons..."
 tar -xf "$TMP_ICONS/snowy.tar.xz" -C "$TMP_ICONS"
@@ -109,28 +106,28 @@ SNOWY_DIR=$(find "$TMP_ICONS" -maxdepth 1 -type d -iname "Snowy*" | head -n1)
 [[ -n "$SNOWY_DIR" ]] || { echo "Snowy icons folder not found"; exit 1; }
 
 SNOWY_THEME_NAME="$(basename "$SNOWY_DIR")"
-cp -r "$SNOWY_DIR" "$HOME_DIR/.local/share/icons/"
 
-# -------------------- Bibata Cursor --------------------
-BIBATA_URL="https://github.com/ful1e5/Bibata_Cursor/releases/latest/download/Bibata-Original-Classic.tar.xz"
+install -d /usr/share/icons
+rm -rf "/usr/share/icons/$SNOWY_THEME_NAME"
+cp -r "$SNOWY_DIR" /usr/share/icons/
+chmod -R a+rX "/usr/share/icons/$SNOWY_THEME_NAME"
+gtk-update-icon-cache "/usr/share/icons/$SNOWY_THEME_NAME" || true
 
-echo "Downloading Bibata cursor..."
-wget -O "$TMP_ICONS/bibata.tar.xz" "$BIBATA_URL"
-tar -xf "$TMP_ICONS/bibata.tar.xz" -C "$TMP_ICONS"
-
-BIBATA_DIR=$(find "$TMP_ICONS" -maxdepth 1 -type d -name "Bibata*" | head -n1)
-[[ -n "$BIBATA_DIR" ]] || { echo "Bibata cursor folder not found"; exit 1; }
-
-cp -r "$BIBATA_DIR" "$HOME_DIR/.local/share/icons/"
-
-# Cleanup
 rm -rf "$TMP_ICONS"
-chown -R "$USER_NAME:$USER_NAME" "$HOME_DIR/.local/share/icons"
-echo "Icons and cursor installed successfully."
+echo "Icons installed: $SNOWY_THEME_NAME"
+
+### -------------------- BIBATA CURSOR --------------------
+BIBATA_URL="https://github.com/ful1e5/Bibata_Cursor/releases/latest/download/Bibata-Original-Classic.tar.xz"
+wget -qO "$TMPDIR/bibata.tar.xz" "$BIBATA_URL"
+tar -xf "$TMPDIR/bibata.tar.xz" -C /usr/share/icons
+rm -f "$TMPDIR/bibata.tar.xz"
 
 ### -------------------- OH MY ZSH --------------------
-[[ -d "$HOME_DIR/.oh-my-zsh" ]] || sudo -u "$USER_NAME" sh -c \
-"$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+if [[ ! -d "$HOME_DIR/.oh-my-zsh" ]]; then
+    RUNZSH=no CHSH=no KEEP_ZSHRC=yes \
+    runuser -u "$USER_NAME" -- \
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+fi
 
 ### -------------------- USER CONFIGS --------------------
 mkdir -p "$HOME_DIR/.config/alacritty"
@@ -139,31 +136,32 @@ cp "$CONFIG_SRC/.zshrc" "$HOME_DIR/" 2>/dev/null || true
 cp "$CONFIG_SRC/alacritty.yml" "$HOME_DIR/.config/alacritty/" 2>/dev/null || true
 chown -R "$USER_NAME:$USER_NAME" "$HOME_DIR"
 
-### -------------------- KDE AUTO APPLY --------------------
-export XDG_RUNTIME_DIR="/run/user/$(id -u "$USER_NAME")"
-mkdir -p "$XDG_RUNTIME_DIR"
-chown "$USER_NAME:$USER_NAME" "$XDG_RUNTIME_DIR"
+### -------------------- KDE APPLY (PLASMA 5/6 SAFE) --------------------
+KW=kwriteconfig5
+KS=kstart5
+KQ=kquitapp5
 
-sudo -u "$USER_NAME" lookandfeeltool -a org.kde.monochrome || true
-sudo -u "$USER_NAME" plasma-apply-colorscheme Monochrome || true
+command -v kwriteconfig6 &>/dev/null && KW=kwriteconfig6
+command -v kstart &>/dev/null && KS=kstart
+command -v kquitapp6 &>/dev/null && KQ=kquitapp6
 
-sudo -u "$USER_NAME" kwriteconfig5 --file kdeglobals --group Icons --key Theme "$SNOWY_THEME_NAME"
-sudo -u "$USER_NAME" kwriteconfig5 --file kcminputrc --group Mouse --key cursorTheme Bibata-Original-Classic
+runuser -u "$USER_NAME" -- lookandfeeltool -a org.kde.monochrome || true
+runuser -u "$USER_NAME" -- plasma-apply-colorscheme Monochrome || true
+runuser -u "$USER_NAME" -- "$KW" --file kdeglobals --group Icons --key Theme "$SNOWY_THEME_NAME"
+runuser -u "$USER_NAME" -- "$KW" --file kcminputrc --group Mouse --key cursorTheme Bibata-Original-Classic
 
 ### -------------------- PLASMA BACKUP --------------------
 BACKUP_DIR="$HOME_DIR/.config_backup_$(date +%Y%m%d_%H%M%S)"
 mkdir -p "$BACKUP_DIR"
 
-echo "Backing up existing Plasma configs to $BACKUP_DIR..."
 for file in plasma-org.kde.plasma.desktop-appletsrc plasmarc kwinrc kdeglobals; do
     [[ -f "$HOME_DIR/.config/$file" ]] && cp "$HOME_DIR/.config/$file" "$BACKUP_DIR/"
 done
+
 chown -R "$USER_NAME:$USER_NAME" "$BACKUP_DIR"
-echo "Backup complete."
 
 ### -------------------- PLASMA LAYOUT --------------------
-echo "Applying Plasma layout..."
-sudo -u "$USER_NAME" kquitapp5 plasmashell || true
+runuser -u "$USER_NAME" -- "$KQ" plasmashell || true
 sleep 1
 
 if [[ "$HOSTNAME" == *desktop* ]] && [[ -f "$PLASMA_CFG/desktop-appletsrc-desktop" ]]; then
@@ -178,18 +176,14 @@ fi
 
 cp "$LAYOUT" "$HOME_DIR/.config/plasma-org.kde.plasma.desktop-appletsrc"
 cp "$PLASMA_CFG/"{plasmarc,kwinrc,kdeglobals} "$HOME_DIR/.config/" 2>/dev/null || true
+chown "$USER_NAME:$USER_NAME" "$HOME_DIR/.config/"*
 
-chown "$USER_NAME:$USER_NAME" \
-  "$HOME_DIR/.config/plasma-org.kde.plasma.desktop-appletsrc" \
-  "$HOME_DIR/.config/plasmarc" \
-  "$HOME_DIR/.config/kwinrc" \
-  "$HOME_DIR/.config/kdeglobals" 2>/dev/null || true
-
-sudo -u "$USER_NAME" kstart5 plasmashell || true
+runuser -u "$USER_NAME" -- "$KS" plasmashell || true
 
 ### -------------------- SERVICES --------------------
 systemctl enable --now NetworkManager
 systemctl enable --now coolercontrold || true
+systemctl enable --now cpupower || true
 
 ### -------------------- CPU --------------------
 cpupower frequency-set --governor performance || true
