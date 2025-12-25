@@ -28,10 +28,7 @@ for d in "$HOME_DIR/Dotfiles" "$HOME_DIR/dotfiles" "$HOME_DIR/.dotfiles"; do
     [[ -d "$d" ]] && DOTFILES_DIR="$d" && break
 done
 
-[[ -n "${DOTFILES_DIR:-}" ]] || {
-    echo "Dotfiles directory not found"
-    exit 1
-}
+[[ -n "${DOTFILES_DIR:-}" ]] || { echo "Dotfiles directory not found"; exit 1; }
 
 CONFIG_SRC="$DOTFILES_DIR/configs"
 PLASMA_CFG="$CONFIG_SRC/plasma"
@@ -42,8 +39,8 @@ chown -R "$USER_NAME:$USER_NAME" "$TMPDIR"
 
 echo "Dotfiles: $DOTFILES_DIR"
 
-### -------------------- NETWORK --------------------
-curl -s https://archlinux.org >/dev/null || exit 1
+### -------------------- NETWORK CHECK --------------------
+curl -s https://archlinux.org >/dev/null || { echo "No network connection"; exit 1; }
 
 ### -------------------- BASE TOOLS --------------------
 pacman -Syu --noconfirm git curl wget unzip base-devel
@@ -67,7 +64,7 @@ AUR_PACKAGES=(
 
 pacman -S --noconfirm "${OFFICIAL_PACKAGES[@]}"
 
-### -------------------- PARU --------------------
+### -------------------- PARU (AUR HELPER) --------------------
 if ! command -v paru &>/dev/null; then
     sudo -u "$USER_NAME" git clone https://aur.archlinux.org/paru.git "$TMPDIR/paru"
     sudo -u "$USER_NAME" bash -c "cd $TMPDIR/paru && makepkg -si --noconfirm"
@@ -78,31 +75,52 @@ sudo -u "$USER_NAME" paru -S --noconfirm "${AUR_PACKAGES[@]}"
 ### -------------------- FONTS --------------------
 git clone https://github.com/paper-design/paper-mono.git "$TMPDIR/paper-mono"
 mkdir -p /usr/share/fonts/TTF
-cp $TMPDIR/paper-mono/fonts/ttf/*.ttf /usr/share/fonts/TTF/
+cp "$TMPDIR/paper-mono/fonts/ttf/"*.ttf /usr/share/fonts/TTF/
 fc-cache -fv
 rm -rf "$TMPDIR/paper-mono"
 
-### -------------------- KDE THEME (AUTO INSTALL) --------------------
+### -------------------- KDE THEME --------------------
 sudo -u "$USER_NAME" git clone https://gitlab.com/pwyde/monochrome-kde.git "$TMPDIR/mono"
 sudo -u "$USER_NAME" bash -c "cd $TMPDIR/mono && ./install.sh --install"
 rm -rf "$TMPDIR/mono"
 
 ### -------------------- ICONS & CURSOR --------------------
 mkdir -p "$HOME_DIR/.local/share/icons"
+TMP_ICONS="$TMPDIR/icons_temp"
+mkdir -p "$TMP_ICONS"
+rm -f "$TMP_ICONS"/*.tar.xz
 
-# Snowy icons (tar.xz)
-SNOWY_URL="https://s341vla.storage.yandex.net/rdisk/762d6bda094ad80ac18f08f6b10d7580ef81c50b145721a8462741009f4d67b5/694cbb1d/LrLIAmix5hqiqjtvOniV8Ei4DhrHQAMRA51gS4VUD3KzJ6weCaorNb8hdKlvwFy6GJ5Dmw1PWx30m7QKk6wmnQ==?uid=0&filename=Snowy%20icons.tar.xz&disposition=attachment&hash=niqBfoBBJeoXIp/6q0TfQysCFM71rILFS0XJX2WDEfo%3D&limit=0&content_type=application%2Fx-xz&owner_uid=26272584&fsize=970828300&hid=5699663c6a7e3265a0c6e29722ee3f8c&media_type=unknown&tknv=v3&ts=646bf121f4140&s=4d31c35b9a2dc7f5f1150580abee0f29f2723b498b8ef97591e14f906c08b7ee&pb=U2FsdGVkX191HQz40oM5Utb3YWEAOSvqms7KaH96rA7pvNzLOkCk_6QRhfAUSgm6RkC-3FOsTBft7xbMNU3B6empyjlVz05yFKTp5_WhwdA"
-wget -O "$TMPDIR/snowy.tar.xz" "$SNOWY_URL"
-tar -xf "$TMPDIR/snowy.tar.xz" -C "$TMPDIR"
-cp -r "$TMPDIR/Snowy" "$HOME_DIR/.local/share/icons/"
+# -------------------- Snowy Icons --------------------
+SNOWY_URL="https://s341vla.storage.yandex.net/rdisk/762d6bda094ad80ac18f08f6b10d7580ef81c50b145721a8462741009f4d67b5/694cbb1d/LrLIAmix5hqiqjtvOniV8Ei4DhrHQAMRA51gS4VUD3KzJ6weCaorNb8hdKlvwFy6GJ5Dmw1PWx30m7QKk6wmnQ==?uid=0&filename=Snowy%20icons.tar.xz"
 
-# Bibata cursor
+echo "Downloading Snowy icons..."
+wget -O "$TMP_ICONS/snowy.tar.xz" "$SNOWY_URL"
+
+echo "Extracting Snowy icons..."
+tar -xf "$TMP_ICONS/snowy.tar.xz" -C "$TMP_ICONS"
+
+SNOWY_DIR=$(find "$TMP_ICONS" -maxdepth 1 -type d -name "Snowy*" | head -n1)
+[[ -n "$SNOWY_DIR" ]] || { echo "Snowy icons folder not found"; exit 1; }
+
+SNOWY_THEME_NAME=$(basename "$SNOWY_DIR")  # Keep full folder name
+cp -r "$SNOWY_DIR" "$HOME_DIR/.local/share/icons/"
+
+# -------------------- Bibata Cursor --------------------
 BIBATA_URL="https://github.com/ful1e5/Bibata_Cursor/releases/latest/download/Bibata-Original-Classic.tar.xz"
-wget -O "$TMPDIR/bibata.tar.xz" "$BIBATA_URL"
-tar -xf "$TMPDIR/bibata.tar.xz" -C "$HOME_DIR/.local/share/icons"
 
+echo "Downloading Bibata cursor..."
+wget -O "$TMP_ICONS/bibata.tar.xz" "$BIBATA_URL"
+tar -xf "$TMP_ICONS/bibata.tar.xz" -C "$TMP_ICONS"
+
+BIBATA_DIR=$(find "$TMP_ICONS" -maxdepth 1 -type d -name "Bibata*" | head -n1)
+[[ -n "$BIBATA_DIR" ]] || { echo "Bibata cursor folder not found"; exit 1; }
+
+cp -r "$BIBATA_DIR" "$HOME_DIR/.local/share/icons/"
+
+# Cleanup
+rm -rf "$TMP_ICONS"
 chown -R "$USER_NAME:$USER_NAME" "$HOME_DIR/.local/share/icons"
-
+echo "Icons and cursor installed successfully."
 
 ### -------------------- OH MY ZSH --------------------
 [[ -d "$HOME_DIR/.oh-my-zsh" ]] || sudo -u "$USER_NAME" sh -c \
@@ -110,11 +128,9 @@ chown -R "$USER_NAME:$USER_NAME" "$HOME_DIR/.local/share/icons"
 
 ### -------------------- USER CONFIGS --------------------
 mkdir -p "$HOME_DIR/.config/alacritty"
-
 cp "$CONFIG_SRC/.bashrc" "$HOME_DIR/" 2>/dev/null || true
 cp "$CONFIG_SRC/.zshrc" "$HOME_DIR/" 2>/dev/null || true
 cp "$CONFIG_SRC/alacritty.yml" "$HOME_DIR/.config/alacritty/" 2>/dev/null || true
-
 chown -R "$USER_NAME:$USER_NAME" "$HOME_DIR"
 
 ### -------------------- KDE AUTO APPLY --------------------
@@ -125,7 +141,7 @@ chown "$USER_NAME:$USER_NAME" "$XDG_RUNTIME_DIR"
 sudo -u "$USER_NAME" lookandfeeltool -a org.kde.monochrome || true
 sudo -u "$USER_NAME" plasma-apply-colorscheme Monochrome || true
 
-sudo -u "$USER_NAME" kwriteconfig5 --file kdeglobals --group Icons --key Theme Snowy
+sudo -u "$USER_NAME" kwriteconfig5 --file kdeglobals --group Icons --key Theme "$SNOWY_THEME_NAME"
 sudo -u "$USER_NAME" kwriteconfig5 --file kcminputrc --group Mouse --key cursorTheme Bibata-Original-Classic
 
 ### -------------------- PLASMA BACKUP --------------------
@@ -139,10 +155,10 @@ done
 chown -R "$USER_NAME:$USER_NAME" "$BACKUP_DIR"
 echo "Backup complete."
 
-### -------------------- PLASMA LAYOUT (HOST AWARE, CORRECT ORDER) --------------------
+### -------------------- PLASMA LAYOUT --------------------
 echo "Applying Plasma layout..."
-sudo -u "$USER_NAME" qdbus org.kde.plasmashell /PlasmaShell quit || true
-sleep 2
+sudo -u "$USER_NAME" kquitapp5 plasmashell || true
+sleep 1
 
 if [[ "$HOSTNAME" == *desktop* ]] && [[ -f "$PLASMA_CFG/desktop-appletsrc-desktop" ]]; then
     LAYOUT="$PLASMA_CFG/desktop-appletsrc-desktop"
